@@ -1,9 +1,9 @@
-# \[Group name\]
+# \[Ida_Simone_Elin\]
 
 **Group members:**
-- A
-- B
-- C
+- Elin Vestergaard
+- Ida Hougaard
+- Simone
 
 This repository contains  
 1. Inaugural project. 
