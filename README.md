@@ -3,7 +3,7 @@
 **Group members:**
 - Elin Vestergaard
 - Ida Hougaard
-- Simone
+- Simone Ruth Flindhardt
 
 This repository contains  
 1. Inaugural project. 
