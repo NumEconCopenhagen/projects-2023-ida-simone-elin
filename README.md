@@ -1,4 +1,4 @@
-# \[Ida_Simone_Elin\]
+# Ida_Simone_Elin
 
 **Group members:**
 - Elin Vestergaard
