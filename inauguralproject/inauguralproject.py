@@ -1,18 +1,3 @@
-def square(x):
-    """ square numpy array
-    
-    Args:
-    
-        x (ndarray): input array
-        
-    Returns:
-    
-        y (ndarray): output array
-    
-    """
-    
-    y = x**2
-    return y
 
 ####New stuff below________________________-
 
@@ -41,7 +26,7 @@ class HouseholdClass:
 
         # c. household production
         par.alpha = 0.5
-        par.sigma = 1.0
+        par.sigma = 1
 
         # d. wages
         par.wM = 1.0
@@ -70,16 +55,18 @@ class HouseholdClass:
         # a. consumption of market goods
         C = par.wM*LM + par.wF*LF
 
-        #Our try at consumption of home production
-        def H(HM,HF):
-            y = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
-            y[par.sigma == 0] = min(HM,HF)
-            y[par.sigma == 1] = HM**(1-par.alpha)*HF**par.alpha
-            return y
+        #new try a la my
+        H = None 
+        if (par.sigma == 0):
+            H = min(HM,HF)
+        elif (par.sigma == 1):
+            H = HM**(1-par.alpha)*HF**par.alpha
+        else:
+            H = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
 
         # c. total consumption utility
-        Q = C**par.omega * H**(1-par.omega)
-        utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
+        Q = C**(par.omega)*H**(1-par.omega)
+        utility = np.fmax(Q,1e-8)**((1-par.rho)/(1-par.rho))
 
         # d. disutility of work
         epsilon_ = 1+1/par.epsilon
@@ -119,6 +106,7 @@ class HouseholdClass:
         opt.HM = HM[j]
         opt.LF = LF[j]
         opt.HF = HF[j]
+     
 
         # e. print
         if do_print:
