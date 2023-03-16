@@ -116,6 +116,7 @@ class HouseholdClass:
                 print(f'{k} = {v:6.4f}')
 
         return opt
+    
     def solve_obj(self, x, do_print=False):
             value = self.calc_utility(x[0],x[1],x[2],x[3])
             return value
@@ -126,7 +127,7 @@ class HouseholdClass:
 
         obj = lambda x: - self.solve_obj(x)
         constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
-        guess = [8]*4
+        guess = [12]*4
         bounds = [(0,24)]*4
         # ii. optimizer
         result = optimize.minimize(obj,
