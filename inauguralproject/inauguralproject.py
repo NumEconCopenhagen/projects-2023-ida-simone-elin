@@ -66,7 +66,7 @@ class HouseholdClass:
 
         # c. total consumption utility
         Q = C**(par.omega)*H**(1-par.omega)
-        utility = np.fmax(Q,1e-8)**((1-par.rho)/(1-par.rho))
+        utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
         # d. disutility of work
         epsilon_ = 1+1/par.epsilon
@@ -118,6 +118,7 @@ class HouseholdClass:
     def solve(self,do_print=False):
         """ solve model continously """
         
+        pass 
         par = self.par
         sol = self.sol
         opt = SimpleNamespace()
