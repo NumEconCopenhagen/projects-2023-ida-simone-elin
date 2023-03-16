@@ -116,25 +116,25 @@ class HouseholdClass:
                 print(f'{k} = {v:6.4f}')
 
         return opt
-    
+    def solve_obj(self, x, do_print=False):
+            value = self.calc_utility(x[0],x[1],x[2],x[3])
+            return value
     def solve(self,do_print=False):
-        """ solve model continously """    
-    
-        def solve_obj(self, x, do_print=False):
-                value = self.calc_utility(x[0],x[1],x[2],x[3])
-                return value
+        """ solve model continously """
+
+        
 
         obj = lambda x: - self.solve_obj(x)
         constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
-        guess = [4.5]*4
+        guess = [8]*4
         bounds = [(0,24)]*4
         # ii. optimizer
         result = optimize.minimize(obj,
-                                    guess,
-                                    method='SLSQP',
-                                    bounds=bounds,
-                                    constraints=constraints) 
-                
+                                guess,
+                                method='SLSQP',
+                                bounds=bounds,
+                                constraints=constraints) 
+            
 
         return result
 
