@@ -116,27 +116,27 @@ class HouseholdClass:
                 print(f'{k} = {v:6.4f}')
 
         return opt
+    
+    def solve(self,do_print=False):
+        """ solve model continously """    
+    
+        def solve_obj(self, x, do_print=False):
+                value = self.calc_utility(x[0],x[1],x[2],x[3])
+                return value
 
-    #def solve(self,do_print=False):
-        """ solve model continously """
+        obj = lambda x: - self.solve_obj(x)
+        constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
+        guess = [4.5]*4
+        bounds = [(0,24)]*4
+        # ii. optimizer
+        result = optimize.minimize(obj,
+                                    guess,
+                                    method='SLSQP',
+                                    bounds=bounds,
+                                    constraints=constraints) 
+                
 
-    def solve(x,self,do_print=False):
-        value = self.calc_utility(x[0],x[1],x[2],x[3])
-        return value
-
-    obj = lambda x: - solve(x)
-    constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) and ( x[0], x[1], x[2], x[3] > 0 )
-    guess = [4.5]*4
-    bounds = [(0,24)]*4
-    # ii. optimizer
-    result = optimize.minimize(obj,
-                            guess,
-                            method='SLSQP',
-                            bounds=bounds,
-                            constraints=constraints) 
-        
-
-    result
+        return result
 
 
         
@@ -144,6 +144,9 @@ class HouseholdClass:
     def solve_wF_vec(self,discrete=False):
         """ solve model for vector of female wages """
         
+        #loop modellen ovenover og gem alle sol.HF_vec og sol.HM_vec. Dette skal bruges nedenfor.
+
+
 
     def run_regression(self):
         """ run regression """
@@ -161,6 +164,8 @@ class HouseholdClass:
         """ estimate alpha and sigma """
         pass
    
+        #optimize følgende
+
         def obj(x):
             self.par.sigma , self.par.alpha= x[0],x[1]
             self.run_regression()
