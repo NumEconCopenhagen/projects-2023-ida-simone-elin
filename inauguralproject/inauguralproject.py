@@ -126,15 +126,15 @@ class HouseholdClass:
         
 
         obj = lambda x: - self.solve_obj(x)
-        constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
+        #constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
         guess = [12]*4
         bounds = [(0,24)]*4
         # ii. optimizer
         result = optimize.minimize(obj,
                                 guess,
                                 method='SLSQP',
-                                bounds=bounds,
-                                constraints=constraints) 
+                                bounds=bounds)
+                                #constraints=constraints) 
             
 
         return result
