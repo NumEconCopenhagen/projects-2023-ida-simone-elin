@@ -197,5 +197,5 @@ class HouseholdClass:
             self.run_regression()
             return self.sol.beta0, self.sol.beta1
         
-
+        
         #Nelder Mead
