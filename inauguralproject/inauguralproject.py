@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import numpy as np
 from scipy import optimize
+from scipy.optimize import minimize
 
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -116,30 +117,40 @@ class HouseholdClass:
                 print(f'{k} = {v:6.4f}')
 
         return opt
-    
+        
     def solve_obj(self, x, do_print=False):
             value = self.calc_utility(x[0],x[1],x[2],x[3])
             return value
-    def solve(self,do_print=False):
+
+    def solve_continuous(self,do_print=False):
         """ solve model continously """
+    
+        par = self.par
+        sol = self.solcont = SimpleNamespace()
 
+        def constraint1(x):
+            LM, HM, LF, HF = x
+            return 24 - (LM + HM)
         
-
+        def constraint2(x):
+            LM, HM, LF, HF = x
+            return 24 - (LF + HF)
+        
+        constraints = [{'type': 'ineq', 'fun': constraint1},
+                    {'type': 'ineq', 'fun': constraint2}]
+        
         obj = lambda x: - self.solve_obj(x)
-        #constraints = ({'type': 'ineq', 'fun': lambda x: ( x[0] + x[1] - 24 ) and ( x[2] + x[3] - 24 )}) #and ( x[0], x[1], x[2], x[3] > 0 )
         guess = [12]*4
         bounds = [(0,24)]*4
         # ii. optimizer
-        result = optimize.minimize(obj,
-                                guess,
-                                method='SLSQP',
-                                bounds=bounds)
-                                #constraints=constraints) 
-            
+        result = minimize(obj,guess,method='SLSQP', bounds=bounds, constraints=constraints) 
 
-        return result
+        sol.LM=result.x[0]
+        sol.HM=result.x[1]
+        sol.LF=result.x[2]
+        sol.HF=result.x[3]
 
-
+        return sol
         
 
     def solve_wF_vec(self,discrete=False):
