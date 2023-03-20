@@ -1,44 +1,46 @@
-
+# import packages
 from types import SimpleNamespace
 
 import numpy as np
+
 from scipy import optimize
+
 from scipy.optimize import minimize
 
 import pandas as pd 
+
 import matplotlib.pyplot as plt
 
-from scipy import optimize
-
+# setup household class
 class HouseholdClass:
 
     def __init__(self):
         """ setup model """
 
-        # a. create namespaces
+        # create namespaces
         par = self.par = SimpleNamespace()
         sol = self.sol = SimpleNamespace()
 
-        # b. preferences
+        # preferences
         par.rho = 2.0
         par.nu = 0.001
         par.epsilon = 1.0
         par.omega = 0.5 
 
-        # c. household production
+        # household production
         par.alpha = 0.5
         par.sigma = 1
 
-        # d. wages
+        # wages
         par.wM = 1.0
         par.wF = 1.0
         par.wF_vec = np.linspace(0.8,1.2,5)
 
-        # e. targets
+        # targets
         par.beta0_target = 0.4
         par.beta1_target = -0.1
 
-        # f. solution
+        # solution
         sol.LM_vec = np.zeros(par.wF_vec.size)
         sol.HM_vec = np.zeros(par.wF_vec.size)
         sol.LF_vec = np.zeros(par.wF_vec.size)
@@ -50,13 +52,14 @@ class HouseholdClass:
     def calc_utility(self,LM,HM,LF,HF):
         """ calculate utility """
 
+        # unpack 
         par = self.par
         sol = self.sol
 
-        # a. consumption of market goods
+        # consumption of market goods
         C = par.wM*LM + par.wF*LF
 
-        #consumption of home goods
+        # consumption of home goods
         H = None 
         if (par.sigma == 0):
             H = min(HM,HF)
@@ -65,26 +68,28 @@ class HouseholdClass:
         else:
             H = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
 
-        # c. total consumption utility
+        # total consumption utility
         Q = C**(par.omega)*H**(1-par.omega)
         utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
-        # d. disutility of work
+        # disutility of work
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
         disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
         
+        # total utility
         return utility - disutility
 
     def solve_discrete(self,do_print=False):
         """ solve model discretely """
         
+        # unpack
         par = self.par
         sol = self.sol
         opt = SimpleNamespace()
         
-        # a. all possible choices
+        # all possible choices
         x = np.linspace(0,24,49)
         LM,HM,LF,HF = np.meshgrid(x,x,x,x) # all combinations
     
@@ -93,39 +98,42 @@ class HouseholdClass:
         LF = LF.ravel()
         HF = HF.ravel()
 
-        # b. calculate utility
+        # calculate utility
         u = self.calc_utility(LM,HM,LF,HF)
     
-        # c. set to minus infinity if constraint is broken
+        # set to minus infinity if constraint is broken
         I = (LM+HM > 24) | (LF+HF > 24) # | is "or"
         u[I] = -np.inf
     
-        # d. find maximizing argument
+        # find maximizing argument
         j = np.argmax(u)
         
         opt.LM = LM[j]
         opt.HM = HM[j]
         opt.LF = LF[j]
         opt.HF = HF[j]
-     
 
-        # e. print
+        # print
         if do_print:
             for k,v in opt.__dict__.items():
                 print(f'{k} = {v:6.4f}')
 
         return opt
-        
+   
     def solve_obj(self, x, do_print=False):
+            """ fetching utility from class"""
             value = self.calc_utility(x[0],x[1],x[2],x[3])
             return value
+
 
     def solve_continuous(self,do_print=False):
         """ solve model continously """
     
+        # unpack
         par = self.par
         sol = self.solcont = SimpleNamespace()
 
+        # constraints
         def constraint1(x):
             LM, HM, LF, HF = x
             return 24 - (LM + HM)
@@ -137,17 +145,25 @@ class HouseholdClass:
         constraints = [{'type': 'ineq', 'fun': constraint1},
                     {'type': 'ineq', 'fun': constraint2}]
         
+        # defining object
         obj = lambda x: - self.solve_obj(x)
+
+        # guesses
         guess = [12]*4
+
+        # bounds
         bounds = [(0,24)]*4
-        # ii. optimizer
+
+        # optimizer
         result = minimize(obj,guess,method='SLSQP', bounds=bounds, constraints=constraints) 
 
+        # results
         sol.LM=result.x[0]
         sol.HM=result.x[1]
         sol.LF=result.x[2]
         sol.HF=result.x[3]
 
+        # return solution
         return sol
         
 
@@ -155,7 +171,6 @@ class HouseholdClass:
         """ solve model for vector of female wages """
         
         #loop modellen ovenover og gem alle sol.HF_vec og sol.HM_vec. Dette skal bruges nedenfor.
-
 
 
     def run_regression(self):
@@ -170,6 +185,7 @@ class HouseholdClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
+
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
         pass
