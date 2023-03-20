@@ -1,6 +1,4 @@
 
-####New stuff below________________________-
-
 from types import SimpleNamespace
 
 import numpy as np
