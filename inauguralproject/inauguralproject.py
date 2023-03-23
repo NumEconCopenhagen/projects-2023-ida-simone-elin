@@ -154,8 +154,9 @@ class HouseholdClass:
         # bounds
         bounds = [(0,24)]*4
 
-        # optimizer
-        result = minimize(obj,guess,method='SLSQP', bounds=bounds, constraints=constraints) 
+        # optimizer 
+        result = minimize(obj,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
+
 
         # results
         sol.LM=result.x[0]
@@ -169,13 +170,21 @@ class HouseholdClass:
 
     def solve_wF_vec(self,discrete=False):
         """ solve model for vector of female wages """
-        
-        #loop modellen ovenover og gem alle sol.HF_vec og sol.HM_vec. Dette skal bruges nedenfor.
-
+        par = self.par
+        sol = self.sol
+        for it, wF in enumerate(par.wF_vec):
+            par.wF = wF
+            if discrete == True:
+                res = self.solve_discrete()
+            else:
+                res = self.solve_continuous()
+            sol.HF_vec[it] = res.HF
+            sol.HM_vec[it] = res.HM
+            sol.LM_vec[it] = res.LM
+            sol.LF_vec[it] = res.LF
 
     def run_regression(self):
         """ run regression """
-        pass
 
         par = self.par
         sol = self.sol
@@ -185,17 +194,31 @@ class HouseholdClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
+    def objective(self, x):
+        self.par.sigma, self.par.alpha = x[0],x[1]
+        self.run_regression()
+        return self.sol.beta0, self.sol.beta1
+
+    def objective_regression(self, x):
+        regression_eq =         
 
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
-        pass
-   
-        #optimize følgende
 
-        def obj(x):
-            self.par.sigma , self.par.alpha= x[0],x[1]
-            self.run_regression()
-            return self.sol.beta0, self.sol.beta1
-        
-        
-        #Nelder Mead
+        #Unpacking
+        sol = self.sol
+
+        #guess
+        guess_estimate = [0.75]*2
+
+        #defining objetive
+        objective = lambda x: self.objective(x)
+
+        optimal_result = minimize(objective, guess_estimate, method='Nelder-Mead')
+
+        # results
+        sol.sigma = optimal_result.x[0]
+        sol.alpha = optimal_result.x[1]
+
+        # return solution
+        return sol
