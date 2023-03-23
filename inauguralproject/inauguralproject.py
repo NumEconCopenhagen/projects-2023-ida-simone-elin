@@ -167,7 +167,7 @@ class HouseholdClass:
         # return solution
         return sol
         
-
+    #Solving our continuous model for each iteration of female wage
     def solve_wF_vec(self,discrete=False):
         """ solve model for vector of female wages """
         par = self.par
@@ -183,6 +183,8 @@ class HouseholdClass:
             sol.LM_vec[it] = res.LM
             sol.LF_vec[it] = res.LF
 
+
+    #Run the regression from the article on our data
     def run_regression(self):
         """ run regression """
 
@@ -194,13 +196,20 @@ class HouseholdClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
+
+    #Minimizing the distance between our model's beta values and the article's beta values by choosing appropriate sigma and beta
     def objective(self, x):
         self.par.sigma, self.par.alpha = x[0],x[1]
         self.run_regression()
         return self.sol.beta0, self.sol.beta1
 
-    def objective_regression(self, x):
-        regression_eq =         
+    #def objective_regression(self, x):
+        #regression_eq = (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
+
+
+    def objective_regression(self,x):
+        regression_eq = (self.par.beta0_target-self.sol.beta0)**2+(self.par.beta1_target-self.sol.beta1)**2 
+        return regression_eq
 
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
@@ -212,7 +221,7 @@ class HouseholdClass:
         guess_estimate = [0.75]*2
 
         #defining objetive
-        objective = lambda x: self.objective(x)
+        objective = lambda x: self.objective_regression(x)
 
         optimal_result = minimize(objective, guess_estimate, method='Nelder-Mead')
 
