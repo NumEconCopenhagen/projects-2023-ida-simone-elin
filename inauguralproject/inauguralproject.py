@@ -123,7 +123,7 @@ class HouseholdClass:
     def solve_obj(self, x, do_print=False):
             """ fetching utility from class"""
             value = self.calc_utility(x[0],x[1],x[2],x[3])
-            return value
+            return - value
 
 
     def solve_continuous(self,do_print=False):
@@ -146,7 +146,7 @@ class HouseholdClass:
                     {'type': 'ineq', 'fun': constraint2}]
         
         # defining object
-        obj = lambda x: - self.solve_obj(x)
+        #obj = lambda x: - self.solve_obj(x)
 
         # guesses
         guess = [12]*4
@@ -155,7 +155,7 @@ class HouseholdClass:
         bounds = [(0,24)]*4
 
         # optimizer 
-        result = minimize(obj,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
+        result = minimize(self.solve_obj,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
 
 
         # results
@@ -200,14 +200,17 @@ class HouseholdClass:
     #Minimizing the distance between our model's beta values and the article's beta values by choosing appropriate sigma and beta
     def objective(self, x):
         self.par.sigma, self.par.alpha = x[0],x[1]
+        self.solve_wF_vec(discrete=False)
         self.run_regression()
-        return self.sol.beta0, self.sol.beta1
+        regression_eq = (self.par.beta0_target-self.sol.beta0)**2+(self.par.beta1_target-self.sol.beta1)**2 
+        return regression_eq 
 
     #def objective_regression(self, x):
         #regression_eq = (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
 
 
     def objective_regression(self,x):
+
         regression_eq = (self.par.beta0_target-self.sol.beta0)**2+(self.par.beta1_target-self.sol.beta1)**2 
         return regression_eq
 
@@ -218,16 +221,17 @@ class HouseholdClass:
         sol = self.sol
 
         #guess
-        guess_estimate = [0.75]*2
+        guess_estimate = [0.5,1]
 
         #defining objetive
-        objective = lambda x: self.objective_regression(x)
+        #objective = lambda x: self.objective_regression(x)
 
-        optimal_result = minimize(objective, guess_estimate, method='Nelder-Mead')
+        optimal_result = optimize.minimize(self.objective, guess_estimate, method='Nelder-Mead')
 
         # results
         sol.sigma = optimal_result.x[0]
         sol.alpha = optimal_result.x[1]
+        return optimal_result 
 
         # return solution
-        return sol
+        #return sol
