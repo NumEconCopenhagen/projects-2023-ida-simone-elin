@@ -196,42 +196,41 @@ class HouseholdClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
-
+   
     #Minimizing the distance between our model's beta values and the article's beta values by choosing appropriate sigma and beta
-    def objective(self, x):
-        self.par.sigma, self.par.alpha = x[0],x[1]
-        self.solve_wF_vec(discrete=False)
-        self.run_regression()
-        regression_eq = (self.par.beta0_target-self.sol.beta0)**2+(self.par.beta1_target-self.sol.beta1)**2 
-        return regression_eq 
-
-    #def objective_regression(self, x):
-        #regression_eq = (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
-
-
-    def objective_regression(self,x):
-
-        regression_eq = (self.par.beta0_target-self.sol.beta0)**2+(self.par.beta1_target-self.sol.beta1)**2 
-        return regression_eq
-
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
 
         #Unpacking
         sol = self.sol
+        par = self.par
 
-        #guess
-        guess_estimate = [0.5,1]
+        #Objective function
+        def objective(x, self):
+            par.alpha = x[0]
+            par.sigma = x[1]
+            self.solve_wF_vec()
+            self.run_regression()
 
-        #defining objetive
-        #objective = lambda x: self.objective_regression(x)
+            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
 
-        optimal_result = optimize.minimize(self.objective, guess_estimate, method='Nelder-Mead')
+        # constraints
+        constraints = [{'type': 'ineq', 'fun': np.array([0,1])},
+                    {'type': 'ineq', 'fun': 1}]
 
+        # guesses
+        guess_estimate = np.array([0.5, 0.5])
+
+        # bounds
+        bounds = [(0,10), (0,10)]
+
+        # optimize
+        optimal_result = optimize.minimize(objective, guess_estimate, args = (self), method = 'Nelder-Mead', bounds=bounds, constraints=constraints)
+        
+    
         # results
         sol.sigma = optimal_result.x[0]
         sol.alpha = optimal_result.x[1]
-        return optimal_result 
 
         # return solution
-        #return sol
+        return sol
