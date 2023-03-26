@@ -231,6 +231,7 @@ class HouseholdClass:
         # results
         sol.alpha = optimal_result.x[0]
         sol.sigma = optimal_result.x[1]
+        
 
         # return solution
         return sol
