@@ -46,6 +46,12 @@ class HouseholdClass:
         sol.LF_vec = np.zeros(par.wF_vec.size)
         sol.HF_vec = np.zeros(par.wF_vec.size)
 
+        #Empty solution vectors for extention in question 5
+        sol.LM_vec_ext = np.zeros(par.wF_vec.size)
+        sol.HM_vec_ext = np.zeros(par.wF_vec.size)
+        sol.LF_vec_ext = np.zeros(par.wF_vec.size)
+        sol.HF_vec_ext = np.zeros(par.wF_vec.size)
+
         sol.beta0 = np.nan
         sol.beta1 = np.nan
 
@@ -144,9 +150,6 @@ class HouseholdClass:
         
         constraints = [{'type': 'ineq', 'fun': constraint1},
                     {'type': 'ineq', 'fun': constraint2}]
-        
-        # defining object
-        #obj = lambda x: - self.solve_obj(x)
 
         # guesses
         guess = [12]*4
@@ -235,3 +238,79 @@ class HouseholdClass:
 
         # return solution
         return sol
+    
+    def solve_obj_ext(self, x, do_print=False):
+            """ fetching utility from class"""
+            value = self.calc_utility_ext(x[0],x[1],x[2],x[3])
+            return - value
+
+    def calc_utility_ext(self,LM,HM,LF,HF):
+        """ calculate utility """
+
+        # unpack 
+        par = self.par
+        sol = self.sol
+
+        # consumption of market goods
+        C = par.wM*LM + par.wF*LF
+
+        # consumption of home goods
+        H = None 
+        if (par.sigma == 0):
+            H = min(HM,HF)
+        elif (par.sigma == 1):
+            H = HM**(1-par.alpha)*HF**par.alpha
+        else:
+            H = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
+
+        # total consumption utility
+        Q = C**(par.omega)*H**(1-par.omega)
+        utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
+
+        # disutility of work
+        epsilon_ = 1+1/par.epsilon
+        TM = LM+0.5*HM
+        TF = LF+HF
+        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
+        
+        # total utility
+        return utility - disutility
+
+    def solve_continuous_ext(self,do_print=False):
+        """ solve model continously """
+    
+        # unpack
+        par = self.par
+        sol = self.solcont = SimpleNamespace()
+
+        # constraints
+        def constraint1_ext(x):
+            LM, HM, LF, HF = x
+            return 24 - (LM + 0.5*HM)
+        
+        def constraint2_ext(x):
+            LM, HM, LF, HF = x
+            return 24 - (LF + HF)
+        
+        constraints = [{'type': 'ineq', 'fun': constraint1_ext},
+                    {'type': 'ineq', 'fun': constraint2_ext}]
+        
+        # guesses
+        guess = [12]*4
+
+        # bounds
+        bounds = [(0,24)]*4
+
+        # optimizer 
+        result_ext = minimize(self.solve_obj_ext,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
+
+
+        # results
+        sol.LM_vec_ext=result_ext.x[0]
+        sol.HM_vec_ext=result_ext.x[1]
+        sol.LF_vec_ext=result_ext.x[2]
+        sol.HF_vec_ext=result_ext.x[3]
+
+        # return solution
+        return sol
+    
