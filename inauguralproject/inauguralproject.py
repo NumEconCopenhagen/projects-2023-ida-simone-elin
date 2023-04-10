@@ -170,7 +170,7 @@ class HouseholdClass:
         # return solution
         return sol
         
-    #Solving our continuous model for each iteration of female wage
+    #Solving our model for each iteration of female wage (used for both discrete and continuous model)
     def solve_wF_vec(self,discrete=False):
         """ solve model for vector of female wages """
         par = self.par
