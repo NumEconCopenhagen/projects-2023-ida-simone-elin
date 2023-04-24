@@ -10,6 +10,7 @@ from scipy.optimize import minimize
 import pandas as pd 
 
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 # setup household class
 class HouseholdClass:
@@ -314,3 +315,14 @@ class HouseholdClass:
         # return solution
         return sol
     
+def figure(x,y,title) :
+    fig,ax = plt.subplots(figsize=(6,5))
+    ax.scatter(x,y,s=50)
+    ax.set_xlabel(r"$log(\frac{wF}{wM})$",fontsize=14)
+    ax.set_ylabel(r"$log(\frac{HF}{HM})$",fontsize=14)          
+    ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.2f}"))
+    ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.2f}"))
+    ax.set_title(title,pad=15)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.grid()
