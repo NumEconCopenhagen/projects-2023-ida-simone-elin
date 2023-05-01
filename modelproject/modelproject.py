@@ -54,7 +54,7 @@ class SolowModelClass():
         kss = sm.solve(k_ss,par.k)[0]
         return kss
 
-    def solve_ss(self):
+    def solve_num_ss(self):
         val = self.val
 
         f = lambda k: (1-val.d)*k**val.alpha
