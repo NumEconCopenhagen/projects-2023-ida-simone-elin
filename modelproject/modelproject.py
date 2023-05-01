@@ -43,6 +43,7 @@ class SolowModelClass():
             val.delta = 0.1
             val.sigma = 1/2
             val.d = 1/2
+            par.d_vec = np.linspace(0,1,5, endpoint=False)
 
 
     def solve_analytical_ss(self):
@@ -61,4 +62,11 @@ class SolowModelClass():
         result = optimize.root_scalar(obj_kss,bracket=[0.1,100],method='brentq')
 
         return result 
+
+    def d(self):
+        val = self.val
+        y_ss = (1-val.d_vec)*k*val.alpha 
+
+        for d in val.d_vec:
+             y_ss
 
