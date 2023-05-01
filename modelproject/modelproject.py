@@ -25,6 +25,7 @@ class SolowModelClass():
 
             val = self.val
             par = self.par
+            sim = self.sim
 
             par.k = sm.symbols('k')
             par.alpha = sm.symbols('alpha')
@@ -35,7 +36,7 @@ class SolowModelClass():
             par.n = sm.symbols('n')
             par.d = sm.symbols('D')
 
-            #model parameters
+            # model parameters
             val.s = 0.2
             val.g = 0.02
             val.n = 0.01
@@ -44,6 +45,22 @@ class SolowModelClass():
             val.sigma = 0.5
             val.d = 0.5
             #val.d_vec = np.linspace(0,1,5, endpoint=False)
+
+            # simulation parameters
+            par.simT = 100
+
+            sim.s = np.zeros(par.simT)
+            sim.g = np.zeros(par.simT)
+            sim.n = np.zeros(par.simT)
+            sim.alpha = np.zeros(par.simT)
+            sim.delta = np.zeros(par.simT)
+            sim.sigma = np.zeros(par.simT)
+            sim.d = np.zeros(par.simT)
+            sim.K = np.zeros(par.simT)
+            sim.L = np.zeros(par.simT)
+            sim.A = np.zeros(par.simT)
+            sim.Y = np.zeros(par.simT)
+            sim.fracY = np.zeros(par.simT)
 
 
     def solve_analytical_ss(self):
@@ -67,4 +84,31 @@ class SolowModelClass():
         return k_ss, y_ss
     
 
+    def simulate(self):
+        par = self.par
+        val = self.val
+        sim = self.sim
+
+         # period-by-period
+        for t in range(par.simT):
+
+            if t == 0: 
+                K_lag = 7.235
+                L_lag = 1
+                A_lag = 1
+                Y_lag = (1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+
+            else:
+                K_lag = sim.K[t-1]
+                L_lag = sim.L[t-1]
+                A_lag = sim.A[t-1]
+                Y_lag = sim.Y[t-1]
+
+            
+            L = sim.L[t] = (1+val.n)*L_lag
+            A = sim.A[t] = (1+val.g)*A_lag
+            K = sim.K[t] = val.s*sim.Y[t-1]+(1-val.delta)*K_lag
+            Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]+sim.L[t])**(1-val.alpha)
+
+            fracY = sim.fracY[t] = (sim.Y[t]/Y)
 
