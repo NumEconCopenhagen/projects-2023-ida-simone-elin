@@ -61,7 +61,8 @@ class SolowModelClass():
         obj_kss = lambda kss: kss - (val.s*f(kss) + (1-val.delta)*kss)/((1+val.g)*(1+val.n))    
         result = optimize.root_scalar(obj_kss,bracket=[0.1,100],method='brentq')
 
-        return result 
+        print('The steady state for k is',result.root)
+
 
     def d(self):
         par =self.par 
