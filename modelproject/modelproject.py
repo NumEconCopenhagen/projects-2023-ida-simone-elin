@@ -104,11 +104,10 @@ class SolowModelClass():
                 A_lag = sim.A[t-1]
                 Y_lag = sim.Y[t-1]
 
-            
             L = sim.L[t] = (1+val.n)*L_lag
             A = sim.A[t] = (1+val.g)*A_lag
-            K = sim.K[t] = val.s*sim.Y[t-1]+(1-val.delta)*K_lag
+            K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
             Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]+sim.L[t])**(1-val.alpha)
 
-            fracY = sim.fracY[t] = (sim.Y[t]/Y)
+        sim.fracY[t] = (sim.Y[t]/sim.L[t])/(1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
 
