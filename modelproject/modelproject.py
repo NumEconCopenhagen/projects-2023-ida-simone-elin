@@ -54,16 +54,11 @@ class SolowModelClass():
         return kss
 
     def solve_ss(self):
-        par = self.par
+        val = self.val
 
-        f = lambda k: (1-par.d)*par.k**par.alpha
-        obj_kss = lambda kss: kss - (par.s*f(kss) + (1-par.delta)*kss)/((1+par.g)*(1+par.n))    
+        f = lambda k: (1-val.d)*k**val.alpha
+        obj_kss = lambda kss: kss - (val.s*f(kss) + (1-val.delta)*kss)/((1+val.g)*(1+val.n))    
         result = optimize.root_scalar(obj_kss,bracket=[0.1,100],method='brentq')
 
         return result 
 
-    def :
-    ss_func = sm.lambdify((s,g,n,delta,alpha,sigma,d),kss)
-
-    # Evaluate function
-    ss_func(0.2,0.02,0.01,0.1,1/3,1/2,1/2)
