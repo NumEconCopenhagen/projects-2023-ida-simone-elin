@@ -39,11 +39,11 @@ class SolowModelClass():
             val.s = 0.2
             val.g = 0.02
             val.n = 0.01
-            val.alpha = 1/3
+            val.alpha = 0.33
             val.delta = 0.1
-            val.sigma = 1/2
-            val.d = 1/2
-            par.d_vec = np.linspace(0,1,5, endpoint=False)
+            val.sigma = 0.5
+            val.d = 0.5
+            #val.d_vec = np.linspace(0,1,5, endpoint=False)
 
 
     def solve_analytical_ss(self):
@@ -64,9 +64,18 @@ class SolowModelClass():
         return result 
 
     def d(self):
+        par =self.par 
         val = self.val
-        y_ss = (1-val.d_vec)*k*val.alpha 
 
-        for d in val.d_vec:
-             y_ss
+        ss_func_vec = []
 
+        d_vec = np.linspace(0,1,5, endpoint=False)
+
+        f = (1-par.d)*par.k**par.alpha
+
+        for d in d_vec():   
+            kssd = sm.Eq(par.k,(par.s*f+(1-par.delta)*par.k)/((1+par.n)*(1+par.g)))
+            yssd = (1-d)*self.k_ss**val.alpha
+            ss_func_vec.append(yssd) 
+             
+        print(ss_func_vec)
