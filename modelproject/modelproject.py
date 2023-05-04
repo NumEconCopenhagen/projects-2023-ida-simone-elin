@@ -1,6 +1,8 @@
 from scipy import optimize
 import numpy as np
 import sympy as sm
+from sympy.solvers import solve
+from sympy import Symbol
 import matplotlib.pyplot as plt
 from types import SimpleNamespace
 
@@ -35,6 +37,7 @@ class SolowModelClass():
             par.g = sm.symbols('g')
             par.n = sm.symbols('n')
             par.d = sm.symbols('D')
+            par.dT = sm.symbols('dT')
 
             # model parameters
             val.s = 0.2
@@ -42,8 +45,9 @@ class SolowModelClass():
             val.n = 0.01
             val.alpha = 0.33
             val.delta = 0.1
-            val.sigma = 0.5
-            val.d = 0.5
+            val.sigma = 0.0132578 #fra eksamen
+            val.d = 0.175
+            val.dT = 4
             #val.d_vec = np.linspace(0,1,5, endpoint=False)
 
             # simulation parameters
@@ -70,6 +74,14 @@ class SolowModelClass():
         k_ss = sm.Eq(par.k,(par.s*f+(1-par.delta)*par.k)/((1+par.n)*(1+par.g)))
         kss = sm.solve(k_ss,par.k)[0]
         return kss
+    
+    def solve_sigma(self):
+        par = self.par
+
+        sigma_1 = sm.Eq(par.d,1-(1/(1+par.sigma*(par.dT)**2)))
+        sigmavalue = sm.solve(sigma_1,par.sigma)[0]
+        return sigmavalue
+
 
     def solve_num_ss(self):
         val = self.val
@@ -88,6 +100,7 @@ class SolowModelClass():
         par = self.par
         val = self.val
         sim = self.sim
+        val.d_list= [0,0.175,1-1/(1+val.sigma*(0.04*t)**2)]
 
          # period-by-period
         for t in range(par.simT):
@@ -98,16 +111,22 @@ class SolowModelClass():
                 A_lag = 1
                 Y_lag = (1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
 
+                L = sim.L[t] = L_lag
+                A = sim.A[t] = A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
             else:
                 K_lag = sim.K[t-1]
                 L_lag = sim.L[t-1]
                 A_lag = sim.A[t-1]
                 Y_lag = sim.Y[t-1]
 
-            L = sim.L[t] = (1+val.n)*L_lag
-            A = sim.A[t] = (1+val.g)*A_lag
-            K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
-            Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]+sim.L[t])**(1-val.alpha)
+                L = sim.L[t] = (1+val.n)*L_lag
+                A = sim.A[t] = (1+val.g)*A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
-        sim.fracY[t] = (sim.Y[t]/sim.L[t])/(1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+            sim.fracY[t] = sim.Y[t]/(sim.L[t]*sim.Y[0])
+
 
