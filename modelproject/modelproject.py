@@ -115,64 +115,77 @@ class SolowModelClass():
         val = self.val
         sim = self.sim
 
+        #Simulating without climate change
         val.d = 0.0
 
-        # period-by-period
+        #Looping over each period t
         for t in range(par.simT):
             if t == 0: 
+                #Setting the values for period 0
                 K_lag = 7.235
                 L_lag = 1
                 A_lag = 1
                 Y_lag = (1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
 
+                #The model equations for period 0
                 L = sim.L[t] = L_lag
                 A = sim.A[t] = A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
-            else:
+            else: 
+                #Setting the lagged values from period t=1 to t=100
                 K_lag = sim.K[t-1]
                 L_lag = sim.L[t-1]
                 A_lag = sim.A[t-1]
                 Y_lag = sim.Y[t-1]
 
+                #The model equations for period t = 1 to t = 100
                 L = sim.L[t] = (1+val.n)*L_lag
                 A = sim.A[t] = (1+val.g)*A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
+            #Calculating the relative growth in GDP
             sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
     def simulate2(self):
         par = self.par
         val = self.val
         sim = self.sim
-        # period-by-period
-
+      
+        #Simulating with climate change from periode t = 1 
         val.d = 0.175
+
+        #Looping over each period t
         for t in range(par.simT):
             if t == 0: 
+                #Setting the values for period 0
                 K_lag = 7.235
                 L_lag = 1
                 A_lag = 1
                 Y_lag = (1-0)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
 
+                #The model equations for period 0, with no climate change
                 L = sim.L[t] = L_lag
                 A = sim.A[t] = A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-0)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
             else:
+                #Setting the lagged values from period t=1 to t=100, with climate change from period 1
                 K_lag = sim.K[t-1]
                 L_lag = sim.L[t-1]
                 A_lag = sim.A[t-1]
                 Y_lag = sim.Y[t-1]
 
+                #The model equations for period t = 1 to t = 100
                 L = sim.L[t] = (1+val.n)*L_lag
                 A = sim.A[t] = (1+val.g)*A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
-
+            
+            #Calculating the relative growth in GDP with climate change  
             sim.fracYD[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
     def simulate3(self):
@@ -180,35 +193,45 @@ class SolowModelClass():
         val = self.val
         sim = self.sim
 
-        # period-by-period
+        #Looping over each period t
         for t in range(par.simT):
             
+            #The model equation for D 
             def d_growth(self):
                 return 1-(1/(1+val.sigma*(0.04*t)**2))
             
             if t == 0: 
+                #Setting the values for period 0
                 K_lag = 7.235
                 L_lag = 1
                 A_lag = 1
                 Y_lag = (1-d_growth(self))*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
-
+                
+                #The model equations for period 0
                 L = sim.L[t] = L_lag
                 A = sim.A[t] = A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
-
+            
             else:
+                #Setting the lagged values from period t=1 to t=100
                 K_lag = sim.K[t-1]
                 L_lag = sim.L[t-1]
                 A_lag = sim.A[t-1]
                 Y_lag = sim.Y[t-1]
 
+                #The model equations for period t = 1 to t = 100
                 L = sim.L[t] = (1+val.n)*L_lag
                 A = sim.A[t] = (1+val.g)*A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
-
+            
+            #Calculating the relative growth in GDP with growing climate change 
             sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+
+
+
+
 
     def simulatesamlet(self):
         par = self.par
