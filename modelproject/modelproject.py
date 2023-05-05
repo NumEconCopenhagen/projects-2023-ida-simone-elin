@@ -6,6 +6,8 @@ from sympy import Symbol
 import matplotlib.pyplot as plt
 from types import SimpleNamespace
 from tabulate import tabulate
+import ipywidgets as widgets
+from ipywidgets import interact, interactive, fixed, interact_manual
 
 class SolowModelClass(): 
     
@@ -39,7 +41,7 @@ class SolowModelClass():
             par.d = sm.symbols('D')
             par.dT = sm.symbols('dT')
 
-            # model parameters
+            # model parameter values
             val.s = 0.3
             val.g = 0.02
             val.n = 0.01
@@ -230,42 +232,44 @@ class SolowModelClass():
             sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
 
+    def phasediagram(s, d, n, g, alpha, delta ,T) :
 
+        # Create lists
+        kt1_list = []
+        diag_list = []
 
+        
+        for t in range(0,T):
+            k_t1= (s*(1-d)*t**alpha+(1-delta)*t)/((1+n)*(1+g))
+            kt1_list.append(k_t1)
 
-    def simulatesamlet(self):
-        par = self.par
-        val = self.val
-        sim = self.sim
-        # period-by-period
-        for t in range(par.simT) :  
-            def d_growth(self):
-                return 1-(1/(1+val.sigma*(0.04*t)**2))
-              
-            d_list = [0,0.175,d_growth(self)]
-            for d in d_list : 
-                if t == 0: 
-                    K_lag = 7.235
-                    L_lag = 1
-                    A_lag = 1
-                    Y_lag = (1-d_list[d])*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+        for t in range(0,T):
+            diag = t
+            diag_list.append(diag)             
+            
+        # Steadystate
+        #ss = self.solve_analytical_ss()
 
-                    L = sim.L[t] = L_lag
-                    A = sim.A[t] = A_lag
-                    K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
-                    Y = sim.Y[t] = (1-d_list[d])*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+        # Plot
+        plt.figure(figsize=(5,5))
+        plt.plot(diag_list, kt1_list, label=r'$k_{t+1}$', color = 'darkred')
+        plt.plot(diag_list, diag_list, label='45 degree line', color = 'black')
+        #plt.scatter(ss, ss, c='g', linewidths=3, label='Steady State')
+        #plt.text(ss, ss, '({}, {})'.format(round(ss,2), round(ss,2)))
+        plt.xlim(0,T)
+        plt.ylim(0,T)
+        plt.ylabel('$k_{t+1}$')
+        plt.xlabel('$k_t$')
+        plt.grid(True)
+        plt.legend()
 
-                else:
-                    K_lag = sim.K[t-1]
-                    L_lag = sim.L[t-1]
-                    A_lag = sim.A[t-1]
-                    Y_lag = sim.Y[t-1]
+        return plt.show()
 
-                    L = sim.L[t] = (1+val.n)*L_lag
-                    A = sim.A[t] = (1+val.g)*A_lag
-                    K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
-                    Y = sim.Y[t] = (1-d_list[d])*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
-
-                sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
-                sim.fracYD[t]= (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
-                sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+    widgets.interact(phasediagram, 
+                        s     =  widgets.FloatSlider(description = 's' , min = 0 ,    max = 0.5 , step = 0.01 , value = 0.3),
+                        d     =  widgets.FloatSlider(description = 'D' , min = 0 ,    max = 1 , step = 0.1 , value = 0.0),
+                        n     =  widgets.FloatSlider(description = 'n' , min = 0 ,    max = 0.5 , step = 0.01 , value = 0.01),
+                        g     =  widgets.FloatSlider(description = 'g' , min = 0 ,    max = 0.5 , step = 0.01 , value = 0.02),
+                        delta =  widgets.FloatSlider(description = r'$\delta$' , min = 0 ,    max = 1 , step = 0.01 , value = 0.02),
+                        alpha = widgets.FloatSlider(description = r'$\alpha$' , min = 0 ,    max = 0.99 , step = 0.05 , value = 0.33),
+                        T     = widgets.IntSlider(description='T' ,          min = 0,     max = 100, step = 1,    value = 25))
