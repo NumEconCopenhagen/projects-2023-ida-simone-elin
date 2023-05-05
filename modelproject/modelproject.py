@@ -57,6 +57,8 @@ class SolowModelClass():
             sim.A = np.zeros(par.simT)
             sim.Y = np.zeros(par.simT)
             sim.fracY = np.zeros(par.simT)
+            sim.fracYD = np.zeros(par.simT)
+            sim.fracYDgrowth = np.zeros(par.simT)
 
 
     def solve_analytical_ss(self):
@@ -143,8 +145,78 @@ class SolowModelClass():
         val = self.val
         sim = self.sim
         # period-by-period
-        for t in range(par.simT):    
-            d_list = [0,1,2]
+
+        val.d = 0.175
+        for t in range(par.simT):
+            if t == 0: 
+                K_lag = 7.235
+                L_lag = 1
+                A_lag = 1
+                Y_lag = (1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+
+                L = sim.L[t] = L_lag
+                A = sim.A[t] = A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+            else:
+                K_lag = sim.K[t-1]
+                L_lag = sim.L[t-1]
+                A_lag = sim.A[t-1]
+                Y_lag = sim.Y[t-1]
+
+                L = sim.L[t] = (1+val.n)*L_lag
+                A = sim.A[t] = (1+val.g)*A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+            sim.fracYD[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+
+    def simulate3(self):
+        par = self.par
+        val = self.val
+        sim = self.sim
+
+        # period-by-period
+        for t in range(par.simT):
+            
+            def d_growth(self):
+                return 1-(1/(1+val.sigma*(0.04*t)**2))
+            
+            if t == 0: 
+                K_lag = 7.235
+                L_lag = 1
+                A_lag = 1
+                Y_lag = (1-d_growth(self))*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+
+                L = sim.L[t] = L_lag
+                A = sim.A[t] = A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+            else:
+                K_lag = sim.K[t-1]
+                L_lag = sim.L[t-1]
+                A_lag = sim.A[t-1]
+                Y_lag = sim.Y[t-1]
+
+                L = sim.L[t] = (1+val.n)*L_lag
+                A = sim.A[t] = (1+val.g)*A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+            sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+
+    def simulatesamlet(self):
+        par = self.par
+        val = self.val
+        sim = self.sim
+        # period-by-period
+        for t in range(par.simT) :  
+            def d_growth(self):
+                return 1-(1/(1+val.sigma*(0.04*t)**2))
+              
+            d_list = [0,0.175,d_growth(self)]
             for d in d_list : 
                 if t == 0: 
                     K_lag = 7.235
@@ -168,9 +240,6 @@ class SolowModelClass():
                     K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                     Y = sim.Y[t] = (1-d_list[d])*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
-            sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
-
-
-# def d_growth(self,t):
-    #return 1-(1/(1+val.sigma*(0.04*t)**2))
-    #d_list = [0.0,0.175,d_growth()]
+                sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+                sim.fracYD[t]= (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+                sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
