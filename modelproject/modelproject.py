@@ -5,7 +5,7 @@ from sympy.solvers import solve
 from sympy import Symbol
 import matplotlib.pyplot as plt
 from types import SimpleNamespace
-
+from tabulate import tabulate
 
 class SolowModelClass(): 
     
@@ -40,26 +40,18 @@ class SolowModelClass():
             par.dT = sm.symbols('dT')
 
             # model parameters
-            val.s = 0.2
+            val.s = 0.3
             val.g = 0.02
             val.n = 0.01
             val.alpha = 0.33
-            val.delta = 0.1
+            val.delta = 0.05
             val.sigma = 0.0132578 #fra eksamen
-            val.d = 0.175
+            val.d = 0
             val.dT = 4
-            #val.d_vec = np.linspace(0,1,5, endpoint=False)
+            val.d_vec = np.linspace(0,1,5, endpoint=False)
 
             # simulation parameters
             par.simT = 100
-
-            sim.s = np.zeros(par.simT)
-            sim.g = np.zeros(par.simT)
-            sim.n = np.zeros(par.simT)
-            sim.alpha = np.zeros(par.simT)
-            sim.delta = np.zeros(par.simT)
-            sim.sigma = np.zeros(par.simT)
-            sim.d = np.zeros(par.simT)
             sim.K = np.zeros(par.simT)
             sim.L = np.zeros(par.simT)
             sim.A = np.zeros(par.simT)
@@ -81,7 +73,7 @@ class SolowModelClass():
         sigma_1 = sm.Eq(par.d,1-(1/(1+par.sigma*(par.dT)**2)))
         sigmavalue = sm.solve(sigma_1,par.sigma)[0]
         return sigmavalue
-
+    
 
     def solve_num_ss(self):
         val = self.val
@@ -95,16 +87,33 @@ class SolowModelClass():
 
         return k_ss, y_ss
     
+    def D_vector(self):
+        val = self.val
+
+        # create an empty list to store the results
+        k_ss_list = []
+        y_ss_list = []
+        relative_y_ss_list = []
+
+        for d in val.d_vec:
+            val.d = d
+            k_ss, y_ss = self.solve_num_ss()
+            k_ss_list.append(k_ss)
+            y_ss_list.append(y_ss)
+            rel_y_ss = y_ss/y_ss_list[0]*100
+            relative_y_ss_list.append(rel_y_ss)
+
+            #print(f'd = {d:.1f}: \n Steady state for k is {k_ss:.1f} \n steady state for y is {y_ss:.1f} \n Steady state output per worker relative to a world without climate change is {rel_y_ss:.1f}% \n')
+        data = {"D": val.d_vec, "K_ss": k_ss_list, "Y_ss": y_ss_list}
+        print(tabulate(data,headers="keys",tablefmt="fancy_grid"))
+
 
     def simulate(self):
         par = self.par
         val = self.val
         sim = self.sim
-        val.d_list= [0,0.175,1-1/(1+val.sigma*(0.04*t)**2)]
-
-         # period-by-period
+            # period-by-period
         for t in range(par.simT):
-
             if t == 0: 
                 K_lag = 7.235
                 L_lag = 1
@@ -127,6 +136,41 @@ class SolowModelClass():
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
                 Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
-            sim.fracY[t] = sim.Y[t]/(sim.L[t]*sim.Y[0])
+            sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+
+    def simulate2(self):
+        par = self.par
+        val = self.val
+        sim = self.sim
+        # period-by-period
+        for t in range(par.simT):    
+            d_list = [0,1,2]
+            for d in d_list : 
+                if t == 0: 
+                    K_lag = 7.235
+                    L_lag = 1
+                    A_lag = 1
+                    Y_lag = (1-d_list[d])*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+
+                    L = sim.L[t] = L_lag
+                    A = sim.A[t] = A_lag
+                    K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                    Y = sim.Y[t] = (1-d_list[d])*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+                else:
+                    K_lag = sim.K[t-1]
+                    L_lag = sim.L[t-1]
+                    A_lag = sim.A[t-1]
+                    Y_lag = sim.Y[t-1]
+
+                    L = sim.L[t] = (1+val.n)*L_lag
+                    A = sim.A[t] = (1+val.g)*A_lag
+                    K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
+                    Y = sim.Y[t] = (1-d_list[d])*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+
+            sim.fracY[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
 
+# def d_growth(self,t):
+    #return 1-(1/(1+val.sigma*(0.04*t)**2))
+    #d_list = [0.0,0.175,d_growth()]
