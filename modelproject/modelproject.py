@@ -114,7 +114,10 @@ class SolowModelClass():
         par = self.par
         val = self.val
         sim = self.sim
-            # period-by-period
+
+        val.d = 0.0
+
+        # period-by-period
         for t in range(par.simT):
             if t == 0: 
                 K_lag = 7.235
@@ -152,12 +155,12 @@ class SolowModelClass():
                 K_lag = 7.235
                 L_lag = 1
                 A_lag = 1
-                Y_lag = (1-val.d)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+                Y_lag = (1-0)*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
 
                 L = sim.L[t] = L_lag
                 A = sim.A[t] = A_lag
                 K = sim.K[t] = val.s*Y_lag+(1-val.delta)*K_lag
-                Y = sim.Y[t] = (1-val.d)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+                Y = sim.Y[t] = (1-0)*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
 
             else:
                 K_lag = sim.K[t-1]
