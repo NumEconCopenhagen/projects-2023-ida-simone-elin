@@ -247,6 +247,19 @@ class SolowModelClass():
             # calculating the relative growth in GDP with growing climate change 
             sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
+
+    def solve_num_extension(self):
+        val = self.val
+
+        f = lambda k: (1-(1-(1/(1+val.sigma*(val.dT)**2))))*k**val.alpha
+        obj_kss = lambda kss_ext: kss_ext - (val.s*f(kss_ext) + (1-(val.delta+0.01*val.dT))*kss_ext)/((1+val.g)*(1+val.n))    
+        result = optimize.root_scalar(obj_kss,bracket=[0.1,100],method='brentq')
+
+        k_ss_ext = result.root
+        y_ss_ext = (1-(1-(1/(1+val.sigma*(val.dT)**2))))*k_ss_ext**val.alpha
+
+        return k_ss_ext, y_ss_ext
+
     def extension(self):
         par = self.par
         val = self.val
