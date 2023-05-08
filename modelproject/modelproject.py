@@ -74,6 +74,7 @@ class SolowModelClass():
         kss = sm.solve(k_ss,par.k)[0]
         return kss
     
+
     # solving for sigma numerically
     def solve_sigma_expression(self): 
         par = self.par 
