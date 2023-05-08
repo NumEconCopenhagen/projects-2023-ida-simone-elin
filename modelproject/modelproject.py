@@ -63,6 +63,7 @@ class SolowModelClass():
             sim.fracY = np.zeros(par.simT)
             sim.fracYD = np.zeros(par.simT)
             sim.fracYDgrowth = np.zeros(par.simT)
+            sim.fracY_ext = np.zeros(par.simT)
 
     # analytical solution for capital in steady state
     def solve_analytical_ss(self):
@@ -245,3 +246,46 @@ class SolowModelClass():
             
             # calculating the relative growth in GDP with growing climate change 
             sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
+
+    def extension(self):
+        par = self.par
+        val = self.val
+        sim = self.sim
+
+        # looping over each period t
+        for t in range(par.simT):
+
+            val.delta_ext = val.delta+0.01*0.04*t
+            
+            # simulating with climate change damages increasing by 0.04 degrees Celcius per year
+            def d_growth(self):
+                return 1-(1/(1+val.sigma*(0.04*t)**2))
+            
+            if t == 0: 
+                # setting the values for period 0
+                K_lag = 7.235 #from exam 
+                L_lag = 1
+                A_lag = 1
+                Y_lag = (1-d_growth(self))*K_lag**val.alpha*(A_lag*L_lag)**(1-val.alpha)
+                
+                # the model equations for period 0
+                L = sim.L[t] = L_lag
+                A = sim.A[t] = A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta_ext)*K_lag
+                Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+            
+            else:
+                # setting the lagged values from period t = 1 to t = 100
+                K_lag = sim.K[t-1]
+                L_lag = sim.L[t-1]
+                A_lag = sim.A[t-1]
+                Y_lag = sim.Y[t-1]
+
+                # the model equations for period t = 1 to t = 100
+                L = sim.L[t] = (1+val.n)*L_lag
+                A = sim.A[t] = (1+val.g)*A_lag
+                K = sim.K[t] = val.s*Y_lag+(1-val.delta_ext)*K_lag
+                Y = sim.Y[t] = (1-d_growth(self))*sim.K[t]**(val.alpha)*(sim.A[t]*sim.L[t])**(1-val.alpha)
+            
+            # calculating the relative growth in GDP with growing climate change 
+            sim.fracY_ext[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
