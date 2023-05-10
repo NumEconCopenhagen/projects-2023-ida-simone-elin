@@ -9,14 +9,13 @@ from tabulate import tabulate
 import ipywidgets as widgets
 from ipywidgets import interact, interactive, fixed, interact_manual
 
-#Defining class
+# defining class
 class SolowModelClass(): 
     
     def __init__(self,do_print=True):
             """ create the model """
 
             # if do_print: print('initializing the model:')
-
             self.par = SimpleNamespace()
             self.val = SimpleNamespace()
             self.sim = SimpleNamespace()
@@ -31,7 +30,7 @@ class SolowModelClass():
             par = self.par
             sim = self.sim
 
-            #model parameters for analytical solution
+            # model parameters for analytical solution
             par.k = sm.symbols('k')
             par.alpha = sm.symbols('alpha')
             par.delta = sm.symbols('delta')
@@ -49,7 +48,7 @@ class SolowModelClass():
             val.n = 0.01
             val.alpha = 0.33
             val.delta = 0.05
-            val.sigma = 0.013258 #assuming D_100 = 0.175 and dT = 4 
+            val.sigma = 0.013258 #assuming D_100 = 0.175 and dT = 4 as in the exam
             val.d = 0
             val.dT = 4
             val.d_vec = np.linspace(0,1,10, endpoint=False)
@@ -67,6 +66,8 @@ class SolowModelClass():
 
     # analytical solution for capital in steady state
     def solve_analytical_ss(self):
+        """ function that solves the model analytical and returns k in steady state """
+
         par = self.par
 
         f = (1-par.d)*par.k**par.alpha
@@ -77,6 +78,8 @@ class SolowModelClass():
 
     # solving for sigma numerically
     def solve_sigma_expression(self): 
+        """ function that returning an analytical expression for sigma """
+
         par = self.par 
         eq = sm.Eq(par.d,1-(1/(1+par.sigma*(par.dT)** 2))) 
         sigma = sm.solve(eq,par.sigma)[0] 
@@ -84,6 +87,8 @@ class SolowModelClass():
     
     # solving for sigma given t=100, D_100 = 0.175, and dT/year = 0.04  
     def solve_sigma(self): 
+        """ function that numerically calculates and return a value for sigma """
+
         par = self.par 
         val = self.val 
         val.d = 0.175 
@@ -93,6 +98,8 @@ class SolowModelClass():
 
     # numerical solution for capital and output in steady state
     def solve_num_ss(self):
+        """ function that numerically solves the model and returns y and k in steady state """
+
         val = self.val
 
         f = lambda k: (1-val.d)*k**val.alpha
@@ -106,6 +113,9 @@ class SolowModelClass():
     
     # evaluating capital and outcome in steady state for different levels of climate damage
     def D_vector(self):
+        """ function that calculates SS values for k and y as well as the value of y 
+        relative to y in the baseline scenario and prints it all in a table"""
+
         val = self.val
 
         # create an empty list to store the results
@@ -128,6 +138,8 @@ class SolowModelClass():
 
     # simulating the evolution of output over a 100-year period compared to initial value
     def simulate(self):
+        """ function that makes a simulation of the first scenario """
+
         par = self.par
         val = self.val
         sim = self.sim
@@ -168,6 +180,8 @@ class SolowModelClass():
 
     # simulating the evolution of output over a 100-year period compared to initial value
     def simulate2(self):
+        """ function that makes a simulates of the second scenario"""
+
         par = self.par
         val = self.val
         sim = self.sim
@@ -208,6 +222,8 @@ class SolowModelClass():
     
     # simulating the evolution of output over a 100-year period compared to initial value
     def simulate3(self):
+        """ function that makes a simulation of the third scenario """
+
         par = self.par
         val = self.val
         sim = self.sim
@@ -250,6 +266,8 @@ class SolowModelClass():
 
 
     def solve_num_extension(self):
+        """ solving the model numerically (with the extension) """
+
         val = self.val
 
         f = lambda k: (1-(1-(1/(1+val.sigma*(val.dT)**2))))*k**val.alpha
@@ -262,6 +280,8 @@ class SolowModelClass():
         return k_ss_ext, y_ss_ext
 
     def extension(self):
+        """ function that simulates the model with the extension """
+        
         par = self.par
         val = self.val
         sim = self.sim
