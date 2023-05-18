@@ -31,7 +31,7 @@ class SolowModelClass():
             sim = self.sim
 
             # model parameters for analytical solution
-            par.k = sm.symbols('k')
+            par.k = sm.symbols('ktilde^*')
             par.alpha = sm.symbols('alpha')
             par.delta = sm.symbols('delta')
             par.sigma =  sm.symbols('sigma')
@@ -40,7 +40,8 @@ class SolowModelClass():
             par.n = sm.symbols('n')
             par.d = sm.symbols('D')
             par.dT = sm.symbols('dT') #change in temperature
-            par.kss = sm.symbols(r'$\tilde k_t$')
+            par.kss = sm.symbols('k^*')
+            par.yss = sm.symbols('ytilde^*')
 
             # model parameter values for numerical solution
             val.s = 0.3
@@ -70,8 +71,8 @@ class SolowModelClass():
 
         par = self.par
 
-        f = (1-par.d)*par.k**par.alpha
-        k_ss = sm.Eq(par.k,(par.s*f+(1-par.delta)*par.k)/((1+par.n)*(1+par.g)))
+        y = (1-par.d)*par.k**par.alpha
+        k_ss = sm.Eq(par.k,(par.s*y+(1-par.delta)*par.k)/((1+par.n)*(1+par.g)))
         kss = sm.solve(k_ss,par.k)[0]
         return kss
     
@@ -102,8 +103,8 @@ class SolowModelClass():
 
         val = self.val
 
-        f = lambda k: (1-val.d)*k**val.alpha
-        obj_kss = lambda kss: kss - (val.s*f(kss) + (1-val.delta)*kss)/((1+val.g)*(1+val.n))    
+        y = lambda k: (1-val.d)*k**val.alpha
+        obj_kss = lambda kss: kss - (val.s*y(kss) + (1-val.delta)*kss)/((1+val.g)*(1+val.n))    
         result = optimize.root_scalar(obj_kss,bracket=[0.1,100],method='brentq')
 
         k_ss = result.root
