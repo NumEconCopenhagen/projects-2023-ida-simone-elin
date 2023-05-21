@@ -316,6 +316,7 @@ class HouseholdClass:
         return sol
     
 def figure(x,y,title) :
+    """ plot for figures in question 2 and 3"""
     fig,ax = plt.subplots(figsize=(6,5))
     ax.scatter(x,y,s=50)
     ax.set_xlabel(r"$log(\frac{wF}{wM})$",fontsize=14)
