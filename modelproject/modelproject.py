@@ -15,23 +15,21 @@ class SolowModelClass():
     def __init__(self,do_print=True):
             """ create the model """
 
-            # if do_print: print('initializing the model:')
             self.par = SimpleNamespace()
             self.val = SimpleNamespace()
             self.sim = SimpleNamespace()
 
-            # if do_print: print('calling .setup()')
             self.setup()
 
     def setup(self):
-            """ baseline parameters """
+            """ baseline parameters, values and simulation vectors """
     
             val = self.val
             par = self.par
             sim = self.sim
 
             # model parameters for analytical solution
-            par.k = sm.symbols('ktilde^*')
+            par.k = sm.symbols('k')
             par.alpha = sm.symbols('alpha')
             par.delta = sm.symbols('delta')
             par.sigma =  sm.symbols('sigma')
@@ -39,8 +37,8 @@ class SolowModelClass():
             par.g = sm.symbols('g')
             par.n = sm.symbols('n')
             par.d = sm.symbols('D')
-            par.dT = sm.symbols('dT') #change in temperature
-            par.kss = sm.symbols('k^*')
+            par.dT = sm.Symbol("\Delta T")            
+            par.kss = sm.symbols('ktilde^*')
             par.yss = sm.symbols('ytilde^*')
 
             # model parameter values for numerical solution
@@ -67,7 +65,15 @@ class SolowModelClass():
 
     # analytical solution for capital in steady state
     def solve_analytical_ss(self):
-        """ function that solves the model analytical and returns k in steady state """
+        """ function that solves the model analytical and returns k in steady state
+
+        Args:
+            self :   Reference to class to call model parameters
+    
+        Returns: 
+            kss  :     Steady state equation of capital pr capita
+
+        """
 
         par = self.par
 
@@ -75,31 +81,19 @@ class SolowModelClass():
         k_ss = sm.Eq(par.k,(par.s*y+(1-par.delta)*par.k)/((1+par.n)*(1+par.g)))
         kss = sm.solve(k_ss,par.k)[0]
         return kss
-    
-
-    # solving for sigma numerically
-    def solve_sigma_expression(self): 
-        """ function that returning an analytical expression for sigma """
-
-        par = self.par 
-        eq = sm.Eq(par.d,1-(1/(1+par.sigma*(par.dT)** 2))) 
-        sigma = sm.solve(eq,par.sigma)[0] 
-        return sigma 
-    
-    # solving for sigma given t=100, D_100 = 0.175, and dT/year = 0.04  
-    def solve_sigma(self): 
-        """ function that numerically calculates and return a value for sigma """
-
-        par = self.par 
-        val = self.val 
-        val.d = 0.175 
-        eq = sm.Eq(val.d,1-(1/(1+par.sigma*(val.dT)** 2))) 
-        sol = sm.solve(eq,par.sigma)[0] 
-        print(f'sigma = {sol:.6f}')
 
     # numerical solution for capital and output in steady state
     def solve_num_ss(self):
-        """ function that numerically solves the model and returns y and k in steady state """
+        """ function that numerically solves the model 
+        
+        Args:
+            self :           Reference to class to call model parameters
+    
+        Returns: 
+            k_ss (float):    Steady state value of capital pr capita 
+            y_ss (float):    Steady state value of output pr capita
+
+        """
 
         val = self.val
 
@@ -112,10 +106,56 @@ class SolowModelClass():
 
         return k_ss, y_ss
     
+    # solving for sigma numerically
+    def solve_sigma_expression(self): 
+        """ function that returning an analytical expression for sigma 
+        
+        Args:
+            self :   Reference to class to call model parameters
+    
+        Returns: 
+            sigma:   Equation for sigma 
+
+        """
+
+        par = self.par 
+        eq = sm.Eq(par.d,1-(1/(1+par.sigma*(par.dT)** 2))) 
+        sigma = sm.solve(eq,par.sigma)[0] 
+        return sigma 
+    
+    # solving for sigma given t=100, D_100 = 0.175, and dT/year = 0.04  
+    def solve_sigma(self): 
+        """ function that numerically calculates and return a value for sigma 
+        
+        Args:
+            self :          Reference to class to call model parameters
+    
+        Returns: 
+            sol (float):    Value of sigma
+
+        """
+
+        par = self.par 
+        val = self.val 
+        val.d = 0.175 
+        eq = sm.Eq(val.d,1-(1/(1+par.sigma*(val.dT)** 2))) 
+        sol = sm.solve(eq,par.sigma)[0] 
+        print(f'sigma = {sol:.6f}')
+
     # evaluating capital and outcome in steady state for different levels of climate damage
     def D_vector(self):
         """ function that calculates SS values for k and y as well as the value of y 
-        relative to y in the baseline scenario and prints it all in a table"""
+        relative to y in the baseline scenario and prints it all in a table
+        
+        Args:
+            self :            Reference to class to call model parameters
+    
+        Returns: 
+            k_ss_list :       List of steady state values for capita pr capita
+            y_ss_list :       List of steady state values for output pr capita
+            rel_y_ss_list :   List of relative output
+
+        """
 
         val = self.val
 
@@ -137,14 +177,31 @@ class SolowModelClass():
         data = {"D": val.d_vec, "K_ss": k_ss_list, "Y_ss": y_ss_list, "Relative Y_ss compared \n to situation where \n D = 0 (in pct.)": relative_y_ss_list}
         print(tabulate(data,headers="keys",tablefmt="fancy_grid"))
     
-    #Defining the equation for damage D
     def d_growth(self, t):
+        """ function defining the damage function D
+        Args:
+            self    :            Reference to class to call model parameters
+            t (int) :            Time variable t
+
+        """
+
         val = self.val
         return 1-(1/(1+val.sigma*(0.04*t)**2))
     
     # Simulating the evolution of output over a 100-year period compared to initial value
     def simulate(self, D_param):
-        """ function that makes a simulation of all scenarios """
+        """ function that makes a simulation of all scenarios
+         
+        Args:
+            self    :         Reference to class to call model parameters
+            D_param :         Parameter for varying climate change damage D 
+    
+        Returns: 
+            sim.fracY (ndarray)        :   Simulation values no climate change
+            sim.fracYD (ndarray)       :   Simulation values fixed climate change
+            sim.fracYDgrowth (ndarray) :   Simulation values increasing climate change
+
+        """
 
         par = self.par
         val = self.val
@@ -225,7 +282,16 @@ class SolowModelClass():
                     sim.fracYDgrowth[t] = (sim.Y[t]/sim.L[t])/(sim.Y[0]/sim.L[0])
 
     def solve_num_extension(self):
-        """ solving the model numerically (with the extension) """
+        """ solving the model numerically (with the extension)
+           
+        Args:
+            self :            Reference to class to call model parameters
+    
+        Returns: 
+            k_ss_ext:       List of steady state values for capita pr capita (extension)
+            y_ss_ext :      List of steady state values for output pr capita (extension)
+
+        """
 
         val = self.val
 
@@ -239,7 +305,15 @@ class SolowModelClass():
         return k_ss_ext, y_ss_ext
 
     def extension(self):
-        """ function that simulates the model with the extension """
+        """ function that simulates the model with the extension
+        
+        Args:
+            self :            Reference to class to call model parameters
+    
+        Returns: 
+            sim.fracY_ext:    Simulation values for extension of climate change
+
+        """
         
         par = self.par
         val = self.val
