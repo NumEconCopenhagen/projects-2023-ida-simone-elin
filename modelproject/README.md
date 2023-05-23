@@ -1,6 +1,6 @@
 # Model analysis project
 
-Our project is titled **The Solow model with climate change** and is about solving a long-term growth model where we inlcude economic damages of climate change.
+Our project is titled **The Solow model with climate change** and is about solving a long-term growth model where we include economic damages of climate change.
 
 The **results** of the project can be seen from running [modelproject.ipynb](modelproject.ipynb).
 
