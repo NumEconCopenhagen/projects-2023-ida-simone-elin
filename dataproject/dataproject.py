@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import ipywidgets as widgets
 
 
-#Cleaning the 4 datasets simultaneously
+# cleaning the 4 datasets simultaneously
 def dataclean(df,value):
    """function that drops and renames columns
    
