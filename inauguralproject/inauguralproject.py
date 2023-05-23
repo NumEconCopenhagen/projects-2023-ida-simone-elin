@@ -130,7 +130,9 @@ class HouseholdClass:
     def solve_obj(self, x, do_print=False):
             """ fetching utility from class"""
             value = self.calc_utility(x[0],x[1],x[2],x[3])
-            return - value
+
+            # we perform a monotone transformation by multiplying with 100 to avoid numerical inaccuracy for small numbers
+            return - value*100
 
 
     def solve_continuous(self,do_print=False):
@@ -141,16 +143,8 @@ class HouseholdClass:
         sol = self.solcont = SimpleNamespace()
 
         # constraints
-        def constraint1(x):
-            LM, HM, LF, HF = x
-            return 24 - (LM + HM)
-        
-        def constraint2(x):
-            LM, HM, LF, HF = x
-            return 24 - (LF + HF)
-        
-        constraints = [{'type': 'ineq', 'fun': constraint1},
-                    {'type': 'ineq', 'fun': constraint2}]
+        constraints = [{'type': 'ineq', 'fun': lambda x: 24-(x[0]+x[1])},
+                    {'type': 'ineq', 'fun': lambda x: 24-(x[2]+x[3])}]
 
         # guesses
         guess = [12]*4
@@ -159,7 +153,7 @@ class HouseholdClass:
         bounds = [(0,24)]*4
 
         # optimizer 
-        result = minimize(self.solve_obj,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
+        result = minimize(self.solve_obj,guess,method='SLSQP', bounds=bounds, constraints=constraints) 
 
 
         # results
@@ -185,8 +179,7 @@ class HouseholdClass:
             sol.HF_vec[it] = res.HF
             sol.HM_vec[it] = res.HM
             sol.LM_vec[it] = res.LM
-            sol.LF_vec[it] = res.LF
-
+            sol.LF_vec[it] = res.LF     
 
     #Run the regression from the article on our data
     def run_regression(self):
@@ -218,10 +211,6 @@ class HouseholdClass:
 
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
 
-        # constraints
-        constraints = [{'type': 'ineq', 'fun': np.array([0,1])},
-                    {'type': 'ineq', 'fun': 1}]
-
         # guesses
         guess_estimate = np.array([0.5, 0.5])
 
@@ -229,7 +218,7 @@ class HouseholdClass:
         bounds = [(0,10), (0,10)]
 
         # optimize
-        optimal_result = optimize.minimize(objective, guess_estimate, args = (self), method = 'Nelder-Mead', bounds=bounds, constraints=constraints)
+        optimal_result = optimize.minimize(objective, guess_estimate, args = (self), method = 'Nelder-Mead', bounds=bounds)
         
     
         # results
@@ -243,7 +232,7 @@ class HouseholdClass:
     def solve_obj_ext(self, x, do_print=False):
             """ fetching utility from class"""
             value = self.calc_utility_ext(x[0],x[1],x[2],x[3])
-            return - value
+            return - value*100
 
     def calc_utility_ext(self,LM,HM,LF,HF):
         """ calculate utility """
@@ -285,17 +274,9 @@ class HouseholdClass:
         sol = self.solcont = SimpleNamespace()
 
         # constraints
-        def constraint1_ext(x):
-            LM, HM, LF, HF = x
-            return 24 - (LM + 0.5*HM)
-        
-        def constraint2_ext(x):
-            LM, HM, LF, HF = x
-            return 24 - (LF + HF)
-        
-        constraints = [{'type': 'ineq', 'fun': constraint1_ext},
-                    {'type': 'ineq', 'fun': constraint2_ext}]
-        
+        constraints = [{'type': 'ineq', 'fun': lambda x: 24-(x[0]+0.5*x[1])},
+                    {'type': 'ineq', 'fun': lambda x: 24-(x[2]+x[3])}]
+    
         # guesses
         guess = [12]*4
 
@@ -303,7 +284,7 @@ class HouseholdClass:
         bounds = [(0,24)]*4
 
         # optimizer 
-        result_ext = minimize(self.solve_obj_ext,guess,method='Nelder-Mead', bounds=bounds, constraints=constraints) 
+        result_ext = minimize(self.solve_obj_ext,guess,method='SLSQP', bounds=bounds, constraints=constraints) 
 
 
         # results
@@ -314,6 +295,19 @@ class HouseholdClass:
 
         # return solution
         return sol
+    
+    def solve_wF_vec_ext(self):
+        """ solve extended model for vector of female wages """
+        par = self.par
+        sol = self.sol
+        for it, wF in enumerate(par.wF_vec):
+            par.wF = wF
+            res = self.solve_continuous_ext()
+
+            sol.HF_vec_ext[it] = res.HF_vec_ext
+            sol.HM_vec_ext[it] = res.HM_vec_ext
+            sol.LM_vec_ext[it] = res.LM_vec_ext
+            sol.LF_vec_ext[it] = res.LF_vec_ext
     
 def figure(x,y,title) :
     """ plot for figures in question 2 and 3"""

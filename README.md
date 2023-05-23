@@ -2,7 +2,7 @@
 
 **Group members:**
 - Elin Vestergaard
-- Ida Hougaard
+- Ida Leth Hougaard
 - Simone Ruth Flindhardt
 
 This repository contains  
